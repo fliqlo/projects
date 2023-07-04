@@ -1,0 +1,94 @@
+#include <SPI.h>
+#include <MFRC522.h>
+#include <Servo.h>
+
+#define SS_PIN 10
+#define RST_PIN 9
+#define LED_G 5 // LED NGA GREEN
+//#define LED_R 4 // LED NGA RED
+//#define BUZZER 2 // BUZZER ALARM 
+#define RELAY8 8 // RELAY NI SIYA
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+//Servo myServo; // Servo Name
+
+void setup() {
+  Serial.begin(9600);
+  SPI.begin();
+  mfrc522.PCD_Init();
+  //myServo.attach(3); // Servo Pin
+  //myServo.write(90);
+  //delay(300);
+  pinMode(LED_G, OUTPUT);
+  //pinMode(LED_R, OUTPUT);
+  //pinMode(BUZZER, OUTPUT);
+  //noTone(BUZZER);
+  //delay(300);
+  pinMode(RELAY8, OUTPUT);
+  digitalWrite(RELAY8, HIGH);
+  delay(300);
+}
+
+void loop() {
+   rfidScan();
+//  if(Serial.available()){
+//        input = Serial.read();
+//        Serial.print("You typed: " );
+//        Serial.println(input);
+//   }
+ 
+}
+
+void rfidScan() {
+// Look for new cards
+  if ( ! mfrc522.PICC_IsNewCardPresent())
+  {
+    return;
+  }
+// Select one of the cards
+  if ( ! mfrc522.PICC_ReadCardSerial())
+  {
+    return;
+  }
+// Show UID on Serial Monitor
+  String content= "";
+  byte letter;
+  for (byte i = 0; i < mfrc522.uid.size; i++)
+  {
+    Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+    Serial.print(mfrc522.uid.uidByte[i], HEX);
+    content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+    content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  content.toUpperCase();
+  if (content.substring(1) == "1C 2F D4 37")//Change here the UID of the card/cards that you want to give access
+  {
+    Serial.println();
+    delay(300);  
+    ledG();
+    ledGLow();
+    relayTrigger();
+    return;
+  }
+  else{
+    Serial.println();
+    delay(300);
+    relayNoTrig();
+  }
+}
+void ledG() {
+  digitalWrite(LED_G, HIGH);
+  delay(300);
+}
+void ledGLow() {
+  digitalWrite(LED_G, LOW);
+  delay(300);
+}
+void relayTrigger() {
+  digitalWrite(RELAY8, LOW);
+  delay(2000);
+}
+void relayNoTrig() {
+  digitalWrite(RELAY8, HIGH);
+  delay(2000);
+}
